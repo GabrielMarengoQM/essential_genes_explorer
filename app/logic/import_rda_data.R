@@ -1,12 +1,16 @@
 #' @export
 dpc_gene_list_data <- function() {
-  #list_of_dpcs <- readRDS("../../../rda/zipped_dpc_names_genes.rda")
   list_of_dpcs <- readRDS("./rda/dpc_gene_lists.rda")
 }
 
 #' @export
 morphic_gene_list_data <- function() {
   morphic_gene_list_data <- readRDS("./rda/morphic_gene_list_data.rda")
+}
+
+#' @export
+proto_gene_lists <- function() {
+  proto_gene_lists <- readRDS("./rda/prototype_gene_lists.rda")
 }
 
 #' @export

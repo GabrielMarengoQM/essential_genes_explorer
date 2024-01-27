@@ -21,6 +21,7 @@ library(rrvgo)
 library(clusterProfiler)
 library(rsconnect)
 library(stats)
+library(utils)
 
 if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")

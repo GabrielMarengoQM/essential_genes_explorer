@@ -1,4 +1,8 @@
 box::use(
+  utils[...]
+)
+
+box::use(
   app/logic/import_rda_data[...]
 )
 
@@ -41,6 +45,32 @@ return(gene_lists)
 }
 
 #' @export
+getListOfGeneListInputs <- function() {
+
+}
+
+#' @export
+getGeneListsFromSelect2 <- function(all_uploaded_gene_lists, selected_gene_lists) {
+  selected_lists <- all_uploaded_gene_lists[selected_gene_lists]
+  data <- unlist(selected_lists, use.names = FALSE)
+  return(data)
+}
+
+#' @export
+userFilesUploadToList <- function(files_data, header_option) {
+
+  genelist_names_list <- list()
+  for (i in 1:nrow(files_data)) {
+    file_data <- read.csv(files_data[i, "datapath"], header = header_option)
+    # Remove ".csv" from the name
+    name_without_extension <- sub("\\.csv$", "", files_data[i, "name"])
+
+    genelist_names_list[[name_without_extension]] <- file_data[, 1]  }
+
+  return(genelist_names_list)
+}
+
+#' @export
 subsetGenesMetaDataDf_rowsOnly <- function(genes_list) {
   gene <- genes_list[1]
   if (grepl("^HGNC:\\d+$", gene)) {
@@ -73,13 +103,16 @@ filterGeneIDs <- function(meta_data_table, gene_symbol_filter, omim_gene_id_filt
 }
 
 #' @export
-filterCellLineConstraint <- function(meta_data_table, depmap_filter, mef_filter) {
+filterCellLineConstraint <- function(meta_data_table, depmap_filter, mef_filter, lam_filter) {
 
   table <- meta_data_table[meta_data_table$depmap_mean_score_all >= depmap_filter[1] &
                              meta_data_table$depmap_mean_score_all <= depmap_filter[2], ]
 
   table <- table[table$bf_mef >= mef_filter[1] &
                    table$bf_mef <= mef_filter[2], ]
+
+  table <- table[table$bf_lam >= lam_filter[1] &
+                   table$bf_lam <= lam_filter[2], ]
 
   # Remove rows that are only NAs
   table <- table[!apply(is.na(table), 1, all), ]

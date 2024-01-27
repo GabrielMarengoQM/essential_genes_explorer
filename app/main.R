@@ -1,3 +1,5 @@
+# main module
+
 ## Imports
 # Packages
 box::use(
@@ -28,7 +30,7 @@ ui <- function(id) {
       page_sidebar(
         # Sidebar
         sidebar = sidebar(
-          width = "340px",
+          width = "420px",
           open = c('open'),
           table_sidebar$ui(ns("table_sidebar"))
         ),
@@ -64,7 +66,8 @@ server <- function(id) {
     table_data <- import_rda_data$meta_data_table_data()
     sidebar_data <- table_sidebar$server("table_sidebar")
     meta_data_table$server("meta_data_table", table_data, sidebar_data)
-
+    filtered_df <- meta_data_table$server("meta_data_table", table_data, sidebar_data)
+    table_sidebar$server("table_sidebar", filtered_df)
     # Visualisations tab
     visuals_layout$server("visuals_layout")
   })
