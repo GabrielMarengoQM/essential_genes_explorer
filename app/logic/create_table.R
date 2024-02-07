@@ -16,7 +16,7 @@ data_table <- function(table_data, headers, selected_columns) {
     selection = 'none',
     extensions = c("Buttons"),
     options = list(
-      dom = "Brtip",
+      dom = "Bfrtip",
       # Unsure if this actually speeds up the tooltip
       initComplete = JS(
         "function(settings, json) {",

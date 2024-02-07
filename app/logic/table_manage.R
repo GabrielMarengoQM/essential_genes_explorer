@@ -51,23 +51,56 @@ getListOfGeneListInputs <- function() {
 
 #' @export
 getGeneListsFromSelect2 <- function(all_uploaded_gene_lists, selected_gene_lists) {
+
+
   selected_lists <- all_uploaded_gene_lists[selected_gene_lists]
   data <- unlist(selected_lists, use.names = FALSE)
+
+
   return(data)
 }
 
 #' @export
-userFilesUploadToList <- function(files_data, header_option) {
+# userFilesUploadToList <- function(files_data, header_option) {
+#   #print(files_data)
+#   genelist_names_list <- list()
+#   for (i in 1:nrow(files_data)) {
+#     file_data <- read.csv(files_data[i, "datapath"], header = header_option)
+#     # Remove ".csv" from the name
+#     name_without_extension <- sub("\\.csv$", "", files_data[i, "name"])
+#
+#     genelist_names_list[[name_without_extension]] <- file_data[, 1]  }
+#
+#   return(genelist_names_list)
+# }
 
+#' @export
+userFilesUploadToList <- function(files_data, header_option) {
   genelist_names_list <- list()
   for (i in 1:nrow(files_data)) {
-    file_data <- read.csv(files_data[i, "datapath"], header = header_option)
-    # Remove ".csv" from the name
-    name_without_extension <- sub("\\.csv$", "", files_data[i, "name"])
+    file_path <- files_data[i, "datapath"]
+    file_extension <- tools::file_ext(file_path)
 
-    genelist_names_list[[name_without_extension]] <- file_data[, 1]  }
+    if (file_extension == "csv") {
+      file_data <- read.csv(file_path, header = header_option)
+    } else if (file_extension %in% c("tsv", "tab")) {
+      file_data <- read.delim(file_path, header = header_option)
+    } else {
+      stop(paste("Unsupported file format for file:", file_path))
+    }
+
+    # Remove file extension from the name
+    name_without_extension <- sub(sprintf("\\.%s$", file_extension), "", files_data[i, "name"])
+
+    genelist_names_list[[name_without_extension]] <- file_data[, 1]
+  }
 
   return(genelist_names_list)
+}
+
+#' @export
+noFileUploadHandler <- function(data) {
+  return(data)
 }
 
 #' @export
@@ -89,6 +122,7 @@ subsetGenesMetaDataDf_rowsOnly <- function(genes_list) {
       }
     }
   }
+
   return(data_subset)
 }
 
@@ -98,6 +132,24 @@ filterGeneIDs <- function(meta_data_table, gene_symbol_filter, omim_gene_id_filt
   table <- meta_data_table[meta_data_table$gene_symbol %in% gene_symbol_filter, ]
   table <- table[table$omim_gene_id %in% omim_gene_id_filter, ]
   table <- table[table$mgi_id %in% mgi_id_filter, ]
+
+  return(table)
+}
+
+#' @export
+filterMouseModels <- function(meta_data_table,
+                              mgi_viability_filter, impc_viability_filter
+                              ,
+                              impc_phenotypes_homozygote_filter,
+                              impc_phenotypes_heterozygote_filter,
+                              impc_phenotypes_hemizygote_filter
+                              ) {
+
+  table <- meta_data_table[meta_data_table$mgi_viability %in% mgi_viability_filter, ]
+  table <- table[table$impc_viability %in% impc_viability_filter, ]
+  table <- table[table$impc_phenotypes_homozygote %in% impc_phenotypes_homozygote_filter, ]
+  table <- table[table$impc_phenotypes_heterozygote %in% impc_phenotypes_heterozygote_filter, ]
+  table <- table[table$impc_phenotypes_hemizygote %in% impc_phenotypes_hemizygote_filter, ]
 
   return(table)
 }
@@ -113,9 +165,46 @@ filterCellLineConstraint <- function(meta_data_table, depmap_filter, mef_filter,
 
   table <- table[table$bf_lam >= lam_filter[1] &
                    table$bf_lam <= lam_filter[2], ]
+  # print("CELL LINE")
+  # print(table$bf_lam)
+  # Remove rows that are only NAs
+  #table <- table[!apply(is.na(table), 1, all), ]
+  # print("CELL LINE AFTER REMOVING NA ROWS")
+  # print(table$bf_lam)
+  return(table)
+}
+
+#' @export
+filterSequencingConstraint <- function(meta_data_table,
+                                       gnomad_lof_oe_filter, gnomad_mis_oe_filter,
+                                       shet_rgcme_mean_filter, shet_post_mean_filter,
+                                       domino_filter, scones_filter,
+                                       mean_am_pathogenicity_filter) {
+
+  table <- meta_data_table[meta_data_table$gnomad_lof_oe >= gnomad_lof_oe_filter[1] &
+                             meta_data_table$gnomad_lof_oe <= gnomad_lof_oe_filter[2], ]
+
+  table <- table[table$gnomad_mis_oe >= gnomad_mis_oe_filter[1] &
+                   table$gnomad_mis_oe <= gnomad_mis_oe_filter[2], ]
+
+  table <- table[table$shet_rgcme_mean >= shet_rgcme_mean_filter[1] &
+                   table$shet_rgcme_mean <= shet_rgcme_mean_filter[2], ]
+
+  table <- table[table$shet_post_mean >= shet_post_mean_filter[1] &
+                   table$shet_post_mean <= shet_post_mean_filter[2], ]
+
+  table <- table[table$domino >= domino_filter[1] &
+                   table$domino <= domino_filter[2], ]
+
+  table <- table[table$scones >= scones_filter[1] &
+                   table$scones <= scones_filter[2], ]
+
+  table <- table[table$mean_am_pathogenicity >= mean_am_pathogenicity_filter[1] &
+                   table$mean_am_pathogenicity <= mean_am_pathogenicity_filter[2], ]
+
 
   # Remove rows that are only NAs
-  table <- table[!apply(is.na(table), 1, all), ]
+  #table <- table[!apply(is.na(table), 1, all), ]
 
   return(table)
 }

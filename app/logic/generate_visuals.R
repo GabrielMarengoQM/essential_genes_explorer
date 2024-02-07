@@ -6,7 +6,11 @@ box::use(
   stats[...],
   upsetjs[...],
   rrvgo[...],
-  ggplot2[...]
+  ggplot2[...],
+  clusterProfiler[...],
+  rrvgo[...],
+  ReactomePA[...],
+  org.Hs.eg.db[...]
 )
 
 # Rda data
@@ -29,13 +33,40 @@ getDataFromUserSelect <- function(selected_data, data) {
   return(gene_lists)
 }
 
+#' @export
+getDataFromUserSelect2 <- function(selected_data, data) {
+
+  gene_lists <- data[selected_data]
+  #print(gene_lists)
+
+  return(gene_lists)
+}
+
+#' @export
+fromDollarToDualList <- function(data) {
+  new_list <- list()
+  for (i in seq_along(data)) {
+    list <- data[[i]]
+    name <- names(data)[[i]]
+
+    new_list <- append(new_list, list(list(list, name)))
+  }
+
+  return(new_list)
+}
+
 # Mouse model data functions ----
 # Takes gene list, returns dataframe for plot
 #' @export
-generateImpcBarchart <- function(gene_lists, data) {
+generateImpcBarchart <- function(gene_lists, data, apcg_toggle) {
+  if (apcg_toggle == TRUE) {
+    print("this HAS been triggered")
+  } else if (apcg_toggle == FALSE) {
+    print("this has NOT been triggered")
+  }
 
   main.annotated.data.frame <- data
-
+  gene_lists <- fromDollarToDualList(gene_lists)
   mouse_data_list <- list()
   for (i in gene_lists) {
 
@@ -80,7 +111,7 @@ generateImpcBarchart <- function(gene_lists, data) {
 
   plot <- plot_ly(combined_df, x = ~impc_viability_3, y = ~percentage, color = ~list_name,
                   textposition = 'outside', text = ~percentage) %>%
-    layout(yaxis = list(title = '% of genes'), xaxis = list(title = 'IMPC preweaning viability assessment'))
+    plotly::layout(yaxis = list(title = '% of genes'), xaxis = list(title = 'IMPC preweaning viability assessment'))
 
   return(plot)
 }
@@ -143,7 +174,7 @@ generateImpcBarchart <- function(gene_lists, data) {
 generateMgiBarchart <- function(gene_lists, data) {
 
   main.annotated.data.frame <- data
-
+  gene_lists <- fromDollarToDualList(gene_lists)
   mouse_data_list <- list()
   for (i in gene_lists) {
 
@@ -253,6 +284,7 @@ generateMgiBarchart <- function(gene_lists, data) {
 generateHasOmimPlot <- function(gene_lists, data) {
 
   main.annotated.data.frame <- data
+  gene_lists <- fromDollarToDualList(gene_lists)
 
   omim_data_list <- list()
   for (i in gene_lists) {
@@ -354,6 +386,7 @@ generateHasOmimPlot <- function(gene_lists, data) {
 generateOmimLethalityPlot <- function(gene_lists, data) {
 
   main.annotated.data.frame <- data
+  gene_lists <- fromDollarToDualList(gene_lists)
 
   omim_data_list <- list()
   for (i in gene_lists) {
@@ -535,6 +568,7 @@ hline <- function(y = 0, color = "grey") {
 
 #' @export
 getViolinPlotData <- function(data, column, gene_lists) {
+  gene_lists <- fromDollarToDualList(gene_lists)
 
   # Get list of tibbles with gene_symbol & corresponding metric value
   all_data_df <- data.frame()
@@ -616,6 +650,7 @@ renderViolinPlot <- function(data, column, genes_to_highlight, threshold_value, 
 # Issue: can't use column in the ~reorder
 #' @export
 getPantherPlots <- function(data, gene_lists) {
+  gene_lists <- fromDollarToDualList(gene_lists)
 
   all_data_list <- list()
 
@@ -662,7 +697,7 @@ getPantherPlots <- function(data, gene_lists) {
 
 #' @export
 generateUpsetR <- function(gene_lists) {
-
+  gene_lists <- fromDollarToDualList(gene_lists)
   input <- list()
 
   for (i in gene_lists) {
@@ -701,13 +736,13 @@ getEnrichedGoTermsMultipleInput <- function(gene_lists, background) {
 }
 
 #' @export
-getEnrichedGoTerms <- function(gene_list, background) {
+getEnrichedGoTerms <- function(gene_list, background, ontology) {
 
-  go_analysis <- enrichGO(gene          = gene_list[[1]],
+  go_analysis <- enrichGO(gene          = gene_list,
                           universe      = background,
                           keyType = "SYMBOL",
                           OrgDb         = "org.Hs.eg.db",
-                          ont           = "BP",
+                          ont           = ontology,
                           pAdjustMethod = "BH",
                           pvalueCutoff  = 0.01,
                           qvalueCutoff  = 0.05,

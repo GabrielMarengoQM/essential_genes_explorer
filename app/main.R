@@ -67,8 +67,10 @@ server <- function(id) {
     sidebar_data <- table_sidebar$server("table_sidebar")
     meta_data_table$server("meta_data_table", table_data, sidebar_data)
     filtered_df <- meta_data_table$server("meta_data_table", table_data, sidebar_data)
-    table_sidebar$server("table_sidebar", filtered_df)
+    table_sidebar$server("table_sidebar")
     # Visualisations tab
-    visuals_layout$server("visuals_layout")
+    visuals_layout$server("visuals_layout", sidebar_data)
+
+    # ADD REQS TO VIS TO NOT THROW ERROR BEFORE USER UPLOAD
   })
 }

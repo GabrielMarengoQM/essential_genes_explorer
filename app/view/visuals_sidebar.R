@@ -13,7 +13,8 @@ box::use(
 
 # Rda data
 box::use(
-  app/logic/import_rda_data
+  app/logic/import_rda_data,
+  app/view/table_sidebar
 )
 
 #' @export
@@ -39,7 +40,12 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   moduleServer(id, function(input, output, session) {
-    
+    # main_sidebar_data <- table_sidebar$server("x")
+    #
+    # observeEvent(main_sidebar_data$user_files_upload(), {
+    #   #updatePickerInput(session, "select_dpcs_vis", choices = names(main_sidebar_data$user_files_upload()), selected = names(main_sidebar_data$user_files_upload()))
+    #   print(main_sidebar_data$user_files_upload())
+    # })
     visuals_sidebar_data <- reactive(input$select_dpcs_vis)
   })
 }

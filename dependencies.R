@@ -22,12 +22,14 @@ library(clusterProfiler)
 library(rsconnect)
 library(stats)
 library(utils)
+library(org.Hs.eg.db)
 
 if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
 BiocManager::install("clusterProfiler")
 BiocManager::install("ReactomePA")
+BiocManager::install("org.Hs.eg.db")
 
 
 packages_to_install <- c(
