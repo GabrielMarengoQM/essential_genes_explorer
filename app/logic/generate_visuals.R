@@ -750,10 +750,10 @@ getEnrichedGoTerms <- function(gene_list, background, ontology) {
 }
 
 #' @export
-generateGoSemanticSimilarityPlot <- function(go_analysis) {
+generateGoSemanticSimilarityPlot <- function(go_analysis, ontology) {
   simMatrix <- calculateSimMatrix(go_analysis$ID,
                                   orgdb="org.Hs.eg.db",
-                                  ont="BP",
+                                  ont=ontology,
                                   method="Rel")
 
   scores <- setNames(-log10(go_analysis$qvalue), go_analysis$ID)
@@ -763,6 +763,7 @@ generateGoSemanticSimilarityPlot <- function(go_analysis) {
                                   orgdb="org.Hs.eg.db")
 
   scat_p <- scatterPlot(simMatrix, reducedTerms)
+
 
   # Interactive plots
   ggplotly(scat_p)

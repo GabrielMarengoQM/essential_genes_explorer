@@ -53,7 +53,7 @@ ui <- function(id) {
     ),
     actionButton(
       ns('get_annotations'),
-      "Retreive annotations for gene lists"
+      "Retrieve annotations for gene lists"
     ),
     hr(),
     # pickerInput(
@@ -288,7 +288,7 @@ ui <- function(id) {
     ),
     # OMIM ----
     dropdownButton(
-      pickerInput(ns("omim_phenotpye_filter"),
+      pickerInput(ns("omim_phenotype_filter"),
                   label = 'Disease phenotype',
                   multiple = TRUE,
                   selected = df$omim_phenotype_name,
@@ -312,6 +312,100 @@ ui <- function(id) {
       circle = FALSE,
       width = "100%",
       label = "Human Diseases",
+      tooltip = tooltipOptions(title = "Click to see filters")
+    ),
+    # PANTHER ----
+    dropdownButton(
+      pickerInput(ns("panther_class_term_filter"),
+                  label = 'Protein class',
+                  multiple = TRUE,
+                  selected = df$class_term,
+                  options = pickerOptions(
+                    actionsBox = TRUE,
+                    showTick = TRUE,
+                    width = "100%"
+                  ),
+                  choices = na.omit(df$class_term)),
+      pickerInput(ns("panther_family_term_filter"),
+                  label = 'Protein family',
+                  multiple = TRUE,
+                  selected = df$family_term,
+                  options = pickerOptions(
+                    actionsBox = TRUE,
+                    showTick = TRUE,
+                    width = "100%"
+                  ),
+                  choices = na.omit(df$family_term)),
+      pickerInput(ns("panther_subfamily_term_filter"),
+                  label = 'Protein subfamily',
+                  multiple = TRUE,
+                  selected = df$subfamily_term,
+                  options = pickerOptions(
+                    actionsBox = TRUE,
+                    showTick = TRUE,
+                    width = "100%"
+                  ),
+                  choices = na.omit(df$subfamily_term)),
+      # Dropdown options
+      circle = FALSE,
+      width = "100%",
+      label = "Protein families (Pantherdb)",
+      tooltip = tooltipOptions(title = "Click to see filters")
+    ),
+    # REACTOME ----
+    dropdownButton(
+      pickerInput(ns("reactome_path_name_filter"),
+                  label = 'Reactome pathway',
+                  multiple = TRUE,
+                  selected = df$path_name,
+                  options = pickerOptions(
+                    actionsBox = TRUE,
+                    showTick = TRUE,
+                    width = "100%"
+                  ),
+                  choices = na.omit(df$path_name)),
+      # Dropdown options
+      circle = FALSE,
+      width = "100%",
+      label = "Pathways (Reactome)",
+      tooltip = tooltipOptions(title = "Click to see filters")
+    ),
+    # GO ----
+    dropdownButton(
+      pickerInput(ns("gene_ontology_bp_filter"),
+                  label = 'Reactome pathway',
+                  multiple = TRUE,
+                  selected = df$go_terms_BP,
+                  options = pickerOptions(
+                    actionsBox = TRUE,
+                    showTick = TRUE,
+                    width = "100%"
+                  ),
+                  choices = na.omit(df$go_terms_BP)),
+      pickerInput(ns("gene_ontology_mf_filter"),
+                  label = 'Reactome pathway',
+                  multiple = TRUE,
+                  selected = df$go_terms_MF,
+                  options = pickerOptions(
+                    actionsBox = TRUE,
+                    showTick = TRUE,
+                    width = "100%"
+                  ),
+                  choices = na.omit(df$go_terms_MF)),
+      pickerInput(ns("gene_ontology_cc_filter"),
+                  label = 'Reactome pathway',
+                  multiple = TRUE,
+                  selected = df$go_terms_CC,
+                  options = pickerOptions(
+                    actionsBox = TRUE,
+                    showTick = TRUE,
+                    width = "100%"
+                  ),
+                  choices = na.omit(df$go_terms_CC)),
+      # Dropdown options
+      circle = FALSE,
+      width = "100%",
+      label = "Gene ontologies (GO)",
       tooltip = tooltipOptions(title = "Click to see filters")
     ),
     # dropdownButton(
@@ -397,7 +491,7 @@ server <- function(id, filtered_df) {
       
       # omim
       updatePickerInput(
-        session, "omim_phenotype_name_filter", 
+        session, "omim_phenotype_filter", 
         choices = unique(filtered_table()[["omim_phenotype_name"]]), 
         selected = unique(filtered_table()[["omim_phenotype_name"]])
       )
@@ -405,6 +499,48 @@ server <- function(id, filtered_df) {
         session, "omim_gene_lethality_filter", 
         choices = unique(filtered_table()[["omim_gene_lethality"]]), 
         selected = unique(filtered_table()[["omim_gene_lethality"]])
+      )
+      
+      # panther
+      updatePickerInput(
+        session, "panther_class_term_filter", 
+        choices = unique(filtered_table()[["class_term"]]), 
+        selected = unique(filtered_table()[["class_term"]])
+      )
+      updatePickerInput(
+        session, "panther_family_term_filter", 
+        choices = unique(filtered_table()[["family_term"]]), 
+        selected = unique(filtered_table()[["family_term"]])
+      )
+      updatePickerInput(
+        session, "panther_subfamily_term_filter", 
+        choices = unique(filtered_table()[["subfamily_term"]]), 
+        selected = unique(filtered_table()[["subfamily_term"]])
+      )
+      
+      # reactome
+      updatePickerInput(
+        session, "reactome_path_name_filter", 
+        choices = unique(filtered_table()[["path_name"]]), 
+        selected = unique(filtered_table()[["path_name"]])
+      )
+      
+      
+      # go
+      updatePickerInput(
+        session, "gene_ontology_bp_filter", 
+        choices = unique(filtered_table()[["go_terms_BP"]]), 
+        selected = unique(filtered_table()[["go_terms_BP"]])
+      )
+      updatePickerInput(
+        session, "gene_ontology_mf_filter", 
+        choices = unique(filtered_table()[["go_terms_MF"]]), 
+        selected = unique(filtered_table()[["go_terms_MF"]])
+      )
+      updatePickerInput(
+        session, "gene_ontology_cc_filter", 
+        choices = unique(filtered_table()[["go_terms_CC"]]), 
+        selected = unique(filtered_table()[["go_terms_CC"]])
       )
       
       # cell lines
@@ -452,14 +588,17 @@ server <- function(id, filtered_df) {
       # print(input$impc_viability_filter)
       current_df <- filtered_table()
       filtered_data <- current_df %>%
+        # MOUSE
         filter((is.na(impc_viability) | impc_viability %in% input$impc_viability_filter)) %>%
         filter(is.na(mgi_viability) | mgi_viability %in% input$mgi_viability_filter) %>%
+        # CELL LINES
         filter(depmap_mean_score_all >= input$depmap_filter[1] &
                 depmap_mean_score_all <= input$depmap_filter[2]) %>%
         filter(bf_mef >= input$mef_filter[1] &
                  bf_mef <= input$mef_filter[2]) %>%
         filter(bf_lam >= input$lam_filter[1] &
                  bf_lam <= input$lam_filter[2]) %>%
+        # SEQUENCING
         filter(gnomad_lof_oe >= input$gnomad_lof_oe_filter[1] &
                  gnomad_lof_oe <= input$gnomad_lof_oe_filter[2]) %>%
         filter(gnomad_mis_oe >= input$gnomad_mis_oe_filter[1] &
@@ -474,8 +613,19 @@ server <- function(id, filtered_df) {
                  scones <= input$scones_filter[2]) %>%
         filter(mean_am_pathogenicity >= input$mean_am_pathogenicity_filter[1] &
                  mean_am_pathogenicity <= input$mean_am_pathogenicity_filter[2]) %>%
+        # DISEASE
         filter(is.na(omim_phenotype_name) | omim_phenotype_name %in% input$omim_phenotype_filter) %>%
-        filter(is.na(omim_gene_lethality) | omim_gene_lethality %in% input$omim_gene_lethality_filter)
+        filter(is.na(omim_gene_lethality) | omim_gene_lethality %in% input$omim_gene_lethality_filter) %>%
+        # PANTHER
+        filter(is.na(class_term) | class_term %in% input$panther_class_term_filter) %>%
+        filter(is.na(family_term) | family_term %in% input$panther_family_term_filter) %>%
+        filter(is.na(subfamily_term) | subfamily_term %in% input$panther_subfamily_term_filter) %>%
+        # REACTOME
+        filter(is.na(path_name) | path_name %in% input$reactome_path_name_filter) %>%
+        # GO
+        filter(is.na(go_terms_BP) | go_terms_BP %in% input$gene_ontology_bp_filter) %>%
+        filter(is.na(go_terms_MF) | go_terms_MF %in% input$gene_ontology_mf_filter) %>%
+        filter(is.na(go_terms_CC) | go_terms_CC %in% input$gene_ontology_cc_filter)
 
       filtered_table(filtered_data)
     })

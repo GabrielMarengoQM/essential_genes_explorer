@@ -8,7 +8,9 @@ box::use(
   plotly[...],
   dplyr[...],
   stats[...],
-  DT[...]
+  DT[...],
+  ggplot2[...],
+  shinycssloaders[...]
 )
 
 # Modules
@@ -390,7 +392,7 @@ ui <- function(id) {
           ),
           # Main content
           #h5("Semantic Similarity Analysis of Enriched Terms"),
-          plotlyOutput(ns("go_semantic_similarity_plot"), height = "500px"),
+          withSpinner(plotlyOutput(ns("go_semantic_similarity_plot"), height = "500px")),
           #h5("Top 10 Enriched Terms"),
           DTOutput(ns("enriched_go_terms"))
 
@@ -1072,6 +1074,7 @@ server <- function(id, sidebar_data) {
     })
 
     go_enriched_terms <- reactiveVal({NULL})
+    go_ont <- reactiveVal({NULL})
 
     observeEvent(input$get_enriched_terms_go, {
       gene_list_data <- sidebar_data$user_files_upload()
@@ -1082,6 +1085,7 @@ server <- function(id, sidebar_data) {
       enriched_terms <- generate_visuals$getEnrichedGoTerms(
         gene_list, background, ontology
       )
+      go_ont(ontology)
       go_enriched_terms(enriched_terms)
     })
 
@@ -1093,16 +1097,24 @@ server <- function(id, sidebar_data) {
       #     select(ID, Description) %>%
       #     rename(GO_ID = ID)
       # )
-      x <-  data.frame(go_enriched_terms(), row.names = NULL) %>%
+      enriched_terms_table <-  data.frame(go_enriched_terms(), row.names = NULL) %>%
         select(ID, Description, qvalue) %>%
         rename(GO_ID = ID)
-      datatable(x)
+      datatable(enriched_terms_table)
     })
 
     # to do
     # ADD BINDCACHE + GENE LIST & ONTOLOGY OPTIONS SELECTION
     output$go_semantic_similarity_plot <- renderPlotly({
-      generate_visuals$generateGoSemanticSimilarityPlot(go_enriched_terms())
+      req(input$get_enriched_terms_go)
+      scat_p <- NULL
+      if (go_ont() == input$select_ontology) {
+        scat_p <- generate_visuals$generateGoSemanticSimilarityPlot(go_enriched_terms(), input$select_ontology)
+        if (input$show_legend == FALSE) {
+          scat_p <- scat_p + theme(legend.position='none')
+        }
+      }
+      scat_p
     })
 
 
